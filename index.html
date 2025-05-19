@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<title>禁煙カウンター</title>
+<meta name="viewport" content="width=device-width,initial-scale=1">
+
+<!-- PWA 用の設定ファイル（次のステップで作成） -->
+<link rel="manifest" href="manifest.webmanifest">
+<meta name="theme-color" content="#ffffff">
+
+<style>
+  body { font-family: system-ui, sans-serif; margin: 2rem; }
+  label, input { display:block; margin-bottom:.9rem; font-size:1rem; }
+  button { padding:.6rem 1.2rem; font-size:1rem; cursor:pointer; }
+  #result { margin-top:1.5rem; font-size:1.2rem; font-weight:bold; }
+</style>
+</head>
+<body>
+  <h1>禁煙カウンター</h1>
+
+  <label>
+    禁煙開始日（YYYY-MM-DD）
+    <input id="start" type="date" value="2025-04-24">
+  </label>
+
+  <label>
+    1 日の喫煙本数
+    <input id="cigs" type="number" value="40" min="1">
+  </label>
+
+  <button id="calc">計算</button>
+
+  <div id="result"></div>
+
+<script>
+/* ------------ メイン計算処理 ------------- */
+document.getElementById('calc').addEventListener('click', () => {
+  const startDate   = new Date(document.getElementById('start').value);
+  const cigsPerDay  = parseInt(document.getElementById('cigs').value, 10);
+
+  if (isNaN(startDate) || isNaN(cigsPerDay)) {
+    alert('入力を確認してください');
+    return;
+  }
+
+  const now      = new Date();
+  const diffMs   = now - startDate;
+  const diffDays = Math.floor(diffMs / 86400000);              // 1日=86,400,000ms
+  const diffHrs  = Math.floor((diffMs % 86400000) / 3600000);  // 残り時間→時間へ
+  const avoided  = diffDays * cigsPerDay +
+                   Math.floor(diffHrs / 24 * cigsPerDay);
+
+  document.getElementById('result').textContent =
+    `禁煙 ${diffDays}日 ${diffHrs}時間 経過。吸わなかった本数: ${avoided}本`;
+});
+
+/* ---------- PWA 用: Service Worker 登録 ---------- */
+if ('serviceWorker' in navigator) {
+  window.addEventListener('load', () => {
+    navigator.serviceWorker.register('sw.js')
+      .catch(err => console.log('SW 登録失敗:', err));
+  });
+}
+</script>
+</body>
+</html>
